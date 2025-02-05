@@ -7,6 +7,8 @@ headers = {
     'API-KEY': '64462b944b7e4d458009596b5bc5611e'
 }
 
+# Las credenciales se sacaron usando el "inspeccionar" en la pagina web
+
 payload = {
     "username": "Not all those who wander",
     "password": "are lost"
