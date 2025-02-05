@@ -1,6 +1,6 @@
 import requests
-import time as t  # Renombramos para evitar conflicto con la variable "time"
-import re  # Para extraer números de las cadenas
+import time as t 
+import re 
 
 # URLs de la API
 url_get = "https://makers-challenge.altscore.ai/v1/s1/e1/resources/measurement"
@@ -18,7 +18,6 @@ def obtener_medicion():
         response = requests.get(url_get, headers=headers)
         if response.status_code == 200:
             data = response.json()
-            print("Datos obtenidos:", data)
             distance_str = data.get("distance", "")
             time_str = data.get("time", "")
 

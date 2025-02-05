@@ -1,13 +1,12 @@
 import requests
 import base64
 
-# URL base de la API de SWAPI para acceder a los personajes
+# URLs de la API
 url_base_swapi = "https://swapi.dev/api/people/"
-
-# URL base de la API de Oracle Rolodex para obtener las notas de los personajes
 url_base_oracle = "https://makers-challenge.altscore.ai/v1/s1/e3/resources/oracle-rolodex"
+url_post = "https://makers-challenge.altscore.ai/v1/s1/e3/solution" 
 
-# Encabezados de la solicitud para la API de Oracle Rolodex
+# Clave de la API
 headers = {
     'accept': 'application/json',
     'API-KEY': '64462b944b7e4d458009596b5bc5611e'
@@ -17,12 +16,13 @@ headers = {
 personajes = []
 total_personajes = 0
 
-# Diccionario para almacenar las respuestas de Oracle Rolodex por personaje
+# Diccionario para almacenar las respuestas del Oráculo
 respuestas_por_personaje = {}
 
 # Iniciar con la primera página de SWAPI
 pagina = 1
 
+# Función para decodificar las respuestas del Oráculo
 def decode_base64(data):
     decoded_data = base64.b64decode(data).decode('utf-8')
     return decoded_data
@@ -53,13 +53,12 @@ while url_base_swapi:
 
 print(f"Total de personajes en la API de SWAPI: {total_personajes}")
 
-# Realizar una solicitud GET a la API de Oracle Rolodex para cada personaje y guardar la respuesta
+# Realizar una solicitud al Oráculo por cada personaje	
 for personaje in personajes:
     # Parámetros de la consulta (nombre del personaje)
     nombre_personaje = personaje['nombre']
     params = {'name': nombre_personaje}
-    
-    # Realizar la solicitud GET a la API de Oracle Rolodex
+
     response = requests.get(url_base_oracle, params=params, headers=headers)
     
     if response.status_code == 200:
@@ -70,13 +69,15 @@ for personaje in personajes:
 
 decoded_responses = {
     key: {
-        k: decode_base64(v)  # Traducimos y luego decodificamos
+        k: decode_base64(v)  # Decodificamos las respuestas del Oráculo
         for k, v in value.items()
     }
     for key, value in respuestas_por_personaje.items()
 }
 
 personajes_info = {}
+
+# Vemos si son del lado oscuro o del lado de la luz
 
 for character, notes in decoded_responses.items():
     # Inicializamos la información del personaje
@@ -88,6 +89,7 @@ for character, notes in decoded_responses.items():
         'planeta': None  # Este campo se rellenará más adelante
     }
 
+# Obtenemos el nombre del planeta de cada personaje
 for personaje in personajes:
     homeworld_url = personaje['homeworld']
     response = requests.get(homeworld_url)
@@ -95,33 +97,11 @@ for personaje in personajes:
     if response.status_code == 200:
         homeworld_data = response.json()
         homeworld_name = homeworld_data['name']
-        #print(f"Planeta de {personaje['nombre']}: {homeworld_name}")
-        
-        # Actualizamos la información del personaje con el nombre del planeta
         personajes_info[personaje['nombre']]['planeta'] = homeworld_name
     else:
         print(f"Error al obtener el planeta para {personaje}. Status code: {response.status_code}")
 
-conteo_planetas = {}
-conteo_light_side = 0
-conteo_dark_side = 0
-
-for character, info in personajes_info.items():
-    planeta = info['planeta']
-    afiliacion = info['afiliacion']
-    
-    # Contamos los personajes de cada planeta
-    if planeta:  # Solo contar si hay un planeta asignado
-        if planeta in conteo_planetas:
-            conteo_planetas[planeta] += 1
-        else:
-            conteo_planetas[planeta] = 1
-
-    # Contamos cuántos personajes hay en cada afiliación
-    if afiliacion == 'Light Side':
-        conteo_light_side += 1
-    elif afiliacion == 'Dark Side':
-        conteo_dark_side += 1
+# Contamos cuantos personajes hay en cada planeta y sus afiliaciones
 
 conteo_planetas_afiliacion = {}
 
@@ -129,7 +109,6 @@ for character, info in personajes_info.items():
     planeta = info['planeta']
     afiliacion = info['afiliacion']
     
-    # Solo contar si el planeta tiene un valor asignado
     if planeta:
         # Inicializamos el diccionario para el planeta si no existe
         if planeta not in conteo_planetas_afiliacion:
@@ -163,14 +142,9 @@ for planeta, conteo in conteo_planetas_afiliacion.items():
     # Guardamos el valor del IBF para el planeta
     resultado_ibf[planeta] = ibf
 
+# Funcion para postear el planeta con IBF = 0
 def enviar_post(planeta):
-    url_post = "https://makers-challenge.altscore.ai/v1/s1/e3/solution"  # Aquí pon la URL de la API a la que quieres hacer el POST
     data = {"planet": planeta}
-    headers = {
-    'accept': 'application/json',
-    'API-KEY': '64462b944b7e4d458009596b5bc5611e'
-    }
-
     # Realizamos la solicitud POST
     response = requests.post(url_post, json=data, headers=headers)
     
